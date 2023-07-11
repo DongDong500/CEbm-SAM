@@ -169,7 +169,7 @@ class UltraSamDataset(Dataset):
         wcode = row['Wcode']
 
         image, mask, bbox, wcode = self._preprocess(image_data, mask_data, wcode)
-        return image, mask, bbox, wcode, row['image']
+        return image, mask, bbox, wcode
 
     def _preprocess(
         self, image: np.ndarray, mask: np.ndarray, wcode: int
