@@ -8,7 +8,7 @@ This is the official repository for CEmb-SAM: Segment Anything Model with Condit
 #### Sample result images
 
 <p float="left">
-  <img src="assets/results (4).png?raw=true" width="37.25%" /> 
+  <img src="assets/results (4).png?raw=true" width="100.00%" /> 
 </p>
 
 
