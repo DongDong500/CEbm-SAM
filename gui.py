@@ -32,13 +32,19 @@ from PyQt5.QtWidgets import (
 
 import numpy as np
 from skimage import transform, io
+from skimage.transform import resize, rescale
 import torch
 import torch.nn as nn
+import torchvision.transforms.functional as TF
 from torch.nn import functional as F
 from PIL import Image
 # load model
 # from segment_anything import sam_model_registry
 from method import CEmbSam
+
+# plot image
+import matplotlib.pyplot as plt
+import matplotlib
 
 # freeze seeds
 torch.manual_seed(2023)
@@ -48,11 +54,18 @@ np.random.seed(2023)
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
+    "--sam_ckpt", type=str, required=True, default="work_dir/cembsam/cembsam_vit_b.pth"
+)
+parser.add_argument(
     "--ckpt", type=str, required=True, default="work_dir/cembsam/cembsam_vit_b.pth"
+)
+parser.add_argument(
+    "--emb_classes", type=int, required=True, default=3
 )
 args = parser.parse_args()
 
 SAM_MODEL_TYPE = "vit_b"
+SAM_CKPT = args.sam_ckpt
 CEmbSAM_CKPT_PATH = args.ckpt
 CEmbSAM_IMG_INPUT_SIZE = 256
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -64,14 +77,14 @@ def medsam_inference(medsam_model, img_embed, box_1024, height, width):
     if len(box_torch.shape) == 2:
         box_torch = box_torch[:, None, :]  # (B, 1, 4)
 
-    sparse_embeddings, dense_embeddings = medsam_model.prompt_encoder(
+    sparse_embeddings, dense_embeddings = medsam_model.sam_model.prompt_encoder(
         points=None,
         boxes=box_torch,
         masks=None,
     )
-    low_res_logits, _ = medsam_model.mask_decoder(
+    low_res_logits, _ = medsam_model.sam_model.mask_decoder(
         image_embeddings=img_embed,  # (B, 256, 64, 64)
-        image_pe=medsam_model.prompt_encoder.get_dense_pe(),  # (1, 256, 64, 64)
+        image_pe=medsam_model.sam_model.prompt_encoder.get_dense_pe(),  # (1, 256, 64, 64)
         sparse_prompt_embeddings=sparse_embeddings,  # (B, 2, 256)
         dense_prompt_embeddings=dense_embeddings,  # (B, 256, 64, 64)
         multimask_output=False,
@@ -90,11 +103,22 @@ def medsam_inference(medsam_model, img_embed, box_1024, height, width):
     return medsam_seg
 
 
-print("Loading MedSAM model, a sec.")
+print("Loading CEmbSAM model, a sec.")
 tic = time.perf_counter()
 
 # set up model
-medsam_model = sam_model_registry["vit_b"](checkpoint=MedSAM_CKPT_PATH).to(device)
+# medsam_model = sam_model_registry["vit_b"](checkpoint=MedSAM_CKPT_PATH).to(device)
+medsam_model = CEmbSam(
+    model_type=SAM_MODEL_TYPE,
+    checkpoint=SAM_CKPT,
+    num_feature=256,
+    emb_classes=args.emb_classes
+)
+# load parameters
+with open(CEmbSAM_CKPT_PATH, "rb") as f:
+    state_dict = torch.load(f)
+    medsam_model.load_state_dict(state_dict)
+medsam_model.to(device)
 medsam_model.eval()
 
 print(f"Done, took {time.perf_counter() - tic}")
@@ -207,6 +231,11 @@ class Window(QWidget):
             exit()
 
         img_np = io.imread(file_path)
+
+        ### show image
+        # io.imshow(img_np)
+        # io.show()
+        
         if len(img_np.shape) == 2:
             img_3c = np.repeat(img_np[:, :, None], 3, axis=-1)
         else:
@@ -308,12 +337,20 @@ class Window(QWidget):
     @torch.no_grad()
     def get_embeddings(self):
         print("Calculating embedding, gui may be unresponsive.")
-        img_1024 = transform.resize(
-            self.img_3c, (1024, 1024), order=3, preserve_range=True, anti_aliasing=True
-        ).astype(np.uint8)
+        # to tensor -> min-max normalize -> resize (256, 256) 
+        #   -> resize for image embeddings (1024, 1024)
+        img_1024 = TF.to_tensor(self.img_3c)
         img_1024 = (img_1024 - img_1024.min()) / np.clip(
             img_1024.max() - img_1024.min(), a_min=1e-8, a_max=None
         )  # normalize to [0, 1], (H, W, 3)
+        img_1024 = TF.resize(
+            img_1024, 
+            (CEmbSAM_IMG_INPUT_SIZE, CEmbSAM_IMG_INPUT_SIZE)
+        )
+        img_1024 = transform.resize(
+            self.img_3c, (1024, 1024), order=3, preserve_range=True, anti_aliasing=True
+        ).astype(np.uint8)
+        
         # convert the shape to (3, H, W)
         img_1024_tensor = (
             torch.tensor(img_1024).float().permute(2, 0, 1).unsqueeze(0).to(device)
@@ -321,9 +358,17 @@ class Window(QWidget):
 
         # if self.embedding is None:
         with torch.no_grad():
-            self.embedding = medsam_model.image_encoder(
+            self.embedding = medsam_model.sam_model.image_encoder(
                 img_1024_tensor
             )  # (1, 256, 64, 64)
+
+            ### condition embedding block
+            ### BUSI malignant only
+            self.embedding = medsam_model.con_block(
+                self.embedding,
+                torch.tensor([1], ).to(device)
+            )
+
         print("Done.")
 
 

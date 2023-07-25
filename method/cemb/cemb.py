@@ -5,7 +5,8 @@ class ClassConditionalInstanceNorm2d(nn.Module):
     def __init__(
             self, 
             num_features, 
-            num_classes, 
+            num_classes,
+            CIN_affine: bool = True,
             affine: bool = False
     ):
         """
@@ -23,7 +24,8 @@ class ClassConditionalInstanceNorm2d(nn.Module):
         self.num_features = num_features
         self.isn = nn.InstanceNorm2d(num_features, affine=affine)
         self.embed = nn.Embedding(num_classes, num_features * 2)
-        
+        self.CINaffine = CIN_affine
+
         self.mlp = nn.Sequential(
             nn.Linear(num_features * 2, num_features * 2),
             nn.ReLU(inplace=True),
@@ -42,8 +44,9 @@ class ClassConditionalInstanceNorm2d(nn.Module):
         
         out = self.isn(x)
         
-        gamma, beta = self.mlp(self.embed(y)).chunk(2, 1)
-        out = gamma.view(-1, self.num_features, 1, 1) * out + beta.view(-1, self.num_features, 1, 1)
+        if self.CINaffine:
+            gamma, beta = self.mlp(self.embed(y)).chunk(2, 1)
+            out = gamma.view(-1, self.num_features, 1, 1) * out + beta.view(-1, self.num_features, 1, 1)
     
         return out
 
