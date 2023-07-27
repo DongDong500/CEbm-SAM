@@ -7,9 +7,11 @@ We also provide GUI to test on sample images
 
 1. GUI
 
-Install 'PyQt5'
+Install `PyQt5`
 
-  python gui.py --sam_ckpt <path/to/sam_vit_b/checkpoint> --ckpt <path/to/CEmbSam/checkpoint> --emb_class <the_number_of_embedding_classes>
+```
+python gui.py --sam_ckpt <path/to/sam_vit_b/checkpoint> --ckpt <path/to/CEmbSam/checkpoint> --emb_class <the_number_of_embedding_classes>
+```
 
 Load the image to the GUI and specify segmentation targets by drawing bounding boxes.
 
@@ -28,7 +30,7 @@ The model was trained on RTX3090.
 Segmentation results on BUSI (1st and 2nd rows) and peripheral nerve
 dataset (3rd and 4th rows).
 <p float="left">
-  <img src="assets/results (4).jpg?raw=true" width="50.00%" /> 
+  <img src="assets/results (4).jpg?raw=true" width="80.00%" /> 
 </p>
 
 
