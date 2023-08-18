@@ -3,7 +3,7 @@ This is the official repository for CEmb-SAM: Segment Anything Model with Condit
 
 
 ## Getting Started
-We also provide GUI to test on sample images
+We provide GUI to test on sample images
 
 1. GUI
 
@@ -35,3 +35,11 @@ dataset (3rd and 4th rows).
 
 
 ## Reference
+```
+@article{shin2023cemb,
+  title={CEmb-SAM: Segment Anything Model with Condition Embedding for Joint Learning from Heterogeneous Datasets},
+  author={Shin, Dongik and Kim, Beomsuk and Baek, Seungjun},
+  journal={arXiv preprint arXiv:2308.06957},
+  year={2023}
+}
+```
