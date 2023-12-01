@@ -54,13 +54,13 @@ np.random.seed(2023)
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
-    "--sam_ckpt", type=str, required=True, default="work_dir/cembsam/cembsam_vit_b.pth"
+    "--sam_ckpt", type=str, required=False, default="/home/dongik/src/checkpoint/segment-anything/sam_vit_b_01ec64.pth"
 )
 parser.add_argument(
-    "--ckpt", type=str, required=True, default="work_dir/cembsam/cembsam_vit_b.pth"
+    "--ckpt", type=str, required=False, default="/home/dongik/src/uSAM-result/Busi-final-v4/finetune_weights/ultrasam_finetune_final.pth"
 )
 parser.add_argument(
-    "--emb_classes", type=int, required=True, default=3
+    "--emb_classes", type=int, required=False, default=3
 )
 args = parser.parse_args()
 

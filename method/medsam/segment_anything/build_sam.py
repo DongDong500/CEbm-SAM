@@ -31,6 +31,7 @@ build_sam = build_sam_vit_h
 
 
 def build_sam_vit_l(checkpoint=None):
+    print("[Info] Build ViT-L")
     return _build_sam(
         encoder_embed_dim=1024,
         encoder_depth=24,
@@ -41,6 +42,7 @@ def build_sam_vit_l(checkpoint=None):
 
 
 def build_sam_vit_b(checkpoint=None):
+    print("[Info] Build ViT-B")
     return _build_sam(
         encoder_embed_dim=768,
         encoder_depth=12,

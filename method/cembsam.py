@@ -31,7 +31,7 @@ class CEmbSam(nn.Module):
         self.sam_model = sam_model_registry[model_type](
             checkpoint=checkpoint
         )
-        self.con_block = CEmb(
+        self.cemb = CEmb(
             num_features=num_feature,
             emb_classes=emb_classes
         )
@@ -40,7 +40,7 @@ class CEmbSam(nn.Module):
 
         image_embeddings = self.sam_model.image_encoder(image)
 
-        image_embeddings = self.con_block(image_embeddings, wcode)
+        image_embeddings = self.cemb(image_embeddings, wcode)
 
         sparse_embeddings, dense_embeddings = self.sam_model.prompt_encoder(
             points=None,

@@ -97,7 +97,7 @@ def get_argparser():
         "--save_pth", type=str, required=True, help="Path to save checkpoint"
     )
     parser.add_argument(
-        "--train_model_type", type=str, choices=["CEmbSam"], default="CEmb-Sam",
+        "--train_model_type", type=str, choices=["CEmbSam"], default="CEmbSam",
         help="choose model type to train"
     )
     parser.add_argument(
@@ -330,6 +330,7 @@ class TrainCEmbSam:
             # Get predictioin mask
 
             image_embeddings = model.sam_model.image_encoder(image)  # (B,256,64,64)
+            
             ###
             ### condition embedding block
             ###
@@ -343,7 +344,7 @@ class TrainCEmbSam:
                 boxes=box_tensor,
                 masks=None,
             )
-
+            
             mask_predictions, _ = model.sam_model.mask_decoder(
                 image_embeddings=image_embeddings.to(self.device),  # (B, 256, 64, 64)
                 image_pe=model.sam_model.prompt_encoder.get_dense_pe(),  # (1, 256, 64, 64)
@@ -440,7 +441,7 @@ class TrainCEmbSam:
                     dense_prompt_embeddings=dense_embeddings,  # (B, 256, 64, 64)
                     multimask_output=False,
                 )
-                
+                # print(f"[Info] mask prediction size: {mask_predictions.shape}")
                 # Calculate loss
                 loss = seg_loss(mask_predictions, mask)
                 
@@ -661,38 +662,16 @@ def main(args):
 
         }
         
-        if args.train_model_type == "Unet":
-            train = TrainUnet(
-                lr=args.lr,
-                batch_size=args.batch_size,
-                epochs=args.num_epochs,
-                image_dir=args.image,
-                mask_dir=args.mask,
-                checkpoint=args.checkpoint,
-                save_pth=args.save_pth,
-            )
-        elif args.train_model_type == "MedSam":
-            train = TrainMedSam(
-                lr=args.lr,
-                batch_size=args.batch_size,
-                epochs=args.num_epochs,
-                image_dir=args.image,
-                mask_dir=args.mask,
-                checkpoint=args.checkpoint,
-                save_pth=args.save_pth,
-            )
-        elif args.train_model_type == "CEmbSam":
-            train = TrainCEmbSam(
-                lr=args.lr,
-                batch_size=args.batch_size,
-                epochs=args.num_epochs,
-                image_dir=args.image,
-                mask_dir=args.mask,
-                checkpoint=args.checkpoint,
-                save_pth=args.save_pth,
-            )
-        else:
-            raise NotImplementedError
+        train = TrainCEmbSam(
+            lr=args.lr,
+            batch_size=args.batch_size,
+            epochs=args.num_epochs,
+            image_dir=args.image,
+            mask_dir=args.mask,
+            checkpoint=args.checkpoint,
+            save_pth=args.save_pth,
+            model_type=args.model_type
+        )
         
         dice_score, metric = train(
             train_df, test_df, val_df, args.image_col, args.mask_col
