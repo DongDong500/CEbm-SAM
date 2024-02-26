@@ -36,10 +36,12 @@ dataset (3rd and 4th rows).
 
 ## Reference
 ```
-@article{shin2023cemb,
+@inproceedings{shin2023cemb,
   title={CEmb-SAM: Segment Anything Model with Condition Embedding for Joint Learning from Heterogeneous Datasets},
-  author={Shin, Dongik and Kim, Beomsuk and Baek, Seungjun},
-  journal={arXiv preprint arXiv:2308.06957},
-  year={2023}
+  author={Shin, Dongik and Kim, MD, Beomsuk and Baek, Seungjun},
+  booktitle={International Conference on Medical Image Computing and Computer-Assisted Intervention},
+  pages={275--284},
+  year={2023},
+  organization={Springer}
 }
 ```
