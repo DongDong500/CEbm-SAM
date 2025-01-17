@@ -15,7 +15,7 @@ python gui.py --sam_ckpt <path/to/sam_vit_b/checkpoint> --ckpt <path/to/CEmbSam/
 
 Load the image to the GUI and specify segmentation targets by drawing bounding boxes.
 
-![Demo](./assets/gui.py@server7 2023-11-08.gif)
+![Demo](./assets/gui.py@server7%202023-11-08.gif)
 
 ## Training Model (CEmb-sam)
 
